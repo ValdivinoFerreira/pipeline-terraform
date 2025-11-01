@@ -1,0 +1,32 @@
+name: Terraform CI/CD
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Validar e Inicializar
+        run: |
+          terraform fmt -check
+          terraform init
+          terraform validate
+
+      - name: Executar plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan
+
+      - name: Executar apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve
